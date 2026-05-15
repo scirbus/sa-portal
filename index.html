@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="SA Portal"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#0f0f11"/>
+<title>21-Day Success System</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{padding-top:env(safe-area-inset-top);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f11;color:#f0f0f2;min-height:100vh;font-size:14px}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+input,select,textarea{font-family:inherit;font-size:13px;background:#1e1e22;color:#f0f0f2;border:1px solid #333;border-radius:8px;padding:9px 12px;width:100%;outline:none;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{border-color:#4f8ef7}
+input::placeholder,textarea::placeholder{color:#555}
+select option{background:#1e1e22}
+button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:8px;border:1px solid #333;background:#1e1e22;color:#f0f0f2;padding:8px 16px;transition:all 0.15s}
+button:hover{background:#26262b}
+button:active{transform:scale(0.97)}
+.bp{background:#4f8ef7;color:#fff;border-color:#4f8ef7}
+.bp:hover{background:#3a7ce8}
+.bg{background:rgba(62,207,142,0.12);color:#3ecf8e;border-color:rgba(62,207,142,0.25)}
+.bg:hover{background:rgba(62,207,142,0.2)}
+.br{background:rgba(240,82,82,0.12);color:#f05252;border-color:rgba(240,82,82,0.25)}
+.bs{padding:5px 10px;font-size:12px}
+.card{background:#17171a;border:1px solid #222;border-radius:12px;padding:1.25rem}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:500}
+.b-green{background:rgba(62,207,142,0.12);color:#3ecf8e}
+.b-red{background:rgba(240,82,82,0.12);color:#f05252}
+.b-blue{background:rgba(79,142,247,0.12);color:#4f8ef7}
+.b-amber{background:rgba(245,166,35,0.12);color:#f5a623}
+.b-gray{background:#222;color:#888}
+.field{margin-bottom:12px}
+.field label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#666;display:block;margin-bottom:5px}
+/* TOPBAR */
+#topbar{display:flex;align-items:center;gap:10px;padding:0 16px;height:50px;background:#17171a;border-bottom:1px solid #222;position:sticky;top:0;z-index:50}
+.nav-tab{padding:5px 12px;border-radius:6px;font-size:13px;border:none;background:transparent;color:#888;cursor:pointer}
+.nav-tab:hover{color:#f0f0f2;background:#1e1e22}
+.nav-tab.active{color:#f0f0f2;background:#1e1e22}
+.tsp{flex:1}
+/* CONTENT */
+#content{padding:20px;max-width:1100px;margin:0 auto}
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:18px;font-weight:500}
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.metric{background:#17171a;border:1px solid #222;border-radius:12px;padding:1rem}
+.metric-val{font-size:26px;font-weight:300}
+.metric-lbl{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
+/* TABLE */
+.tbl-wrap{background:#17171a;border:1px solid #222;border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:#666;border-bottom:1px solid #222;font-weight:500}
+td{padding:10px 14px;border-bottom:1px solid #1a1a1e;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,0.02)}
+/* PROGRESS */
+.pbar{height:4px;background:#222;border-radius:2px;overflow:hidden;width:60px}
+.pfill{height:100%;background:#4f8ef7;border-radius:2px}
+/* DOTS */
+.dots{display:flex;gap:3px;flex-wrap:wrap}
+.dot{width:11px;height:11px;border-radius:50%;background:#222;border:1px solid #333}
+.dot.done{background:#4f8ef7;border-color:#4f8ef7}
+.dot.next{border-color:#4f8ef7;background:transparent}
+/* CALENDAR */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-hdr{text-align:center;font-size:11px;color:#666;padding:6px 0;text-transform:uppercase}
+.cal-day{background:#17171a;border:1px solid #222;border-radius:8px;padding:6px;min-height:72px}
+.cal-day.today{border-color:#4f8ef7}
+.cal-day.empty{background:transparent;border-color:transparent}
+.cal-num{font-size:12px;color:#666;margin-bottom:3px}
+.cal-day.today .cal-num{color:#4f8ef7;font-weight:600}
+.cal-evt{font-size:10px;padding:2px 4px;border-radius:3px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ce-green{background:rgba(62,207,142,0.12);color:#3ecf8e}
+.ce-blue{background:rgba(79,142,247,0.12);color:#4f8ef7}
+.ce-amber{background:rgba(245,166,35,0.12);color:#f5a623}
+/* SIDEBAR */
+.sb-layout{display:grid;grid-template-columns:190px 1fr;gap:14px}
+.sb-item{padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:#888;display:flex;align-items:center;gap:8px;transition:all 0.15s}
+.sb-item:hover{background:#1e1e22;color:#f0f0f2}
+.sb-item.active{background:#1e1e22;color:#f0f0f2;font-weight:500}
+.sba{width:26px;height:26px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#4f8ef7;flex-shrink:0}
+/* NOTE */
+.note{background:#1e1e22;border:1px solid #222;border-radius:8px;padding:.75rem;margin-bottom:8px}
+.note-meta{font-size:11px;color:#555;margin-bottom:4px;display:flex;justify-content:space-between}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:200;padding:1rem;backdrop-filter:blur(3px)}
+.modal{background:#17171a;border:1px solid #333;border-radius:14px;padding:1.5rem;width:100%;max-width:440px;max-height:88vh;overflow-y:auto}
+.modal-wide{max-width:540px}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.mhdr h3{font-size:15px;font-weight:500}
+.mclose{background:none;border:none;color:#555;font-size:20px;cursor:pointer;padding:2px 6px;line-height:1}
+.mclose:hover{color:#f0f0f2}
+.mfooter{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #222}
+/* SMS */
+.sms-tmpl{background:#1e1e22;border:1px solid #333;border-radius:8px;padding:.75rem;margin-bottom:6px;cursor:pointer;transition:border-color 0.15s}
+.sms-tmpl:hover{border-color:#4f8ef7}
+.sms-tmpl.sel{border-color:#4f8ef7;background:rgba(79,142,247,0.06)}
+.sms-prev{font-size:11px;color:#666;margin-top:3px;line-height:1.4}
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:#1e1e22;border:1px solid #333;border-radius:8px;padding:10px 16px;font-size:13px;z-index:999;transition:all 0.25s;transform:translateY(60px);opacity:0;pointer-events:none;max-width:300px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{border-color:rgba(62,207,142,0.4);color:#3ecf8e}
+#toast.err{border-color:rgba(240,82,82,0.4);color:#f05252}
+/* LOGIN */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+.lbox{width:100%;max-width:360px}
+.ltitle{text-align:center;margin-bottom:2rem}
+.ltitle h1{font-size:20px;font-weight:500}
+.ltitle p{font-size:13px;color:#666;margin-top:4px}
+.role-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px}
+.rbtn{padding:10px;text-align:center;border-radius:8px;border:1px solid #333;background:#1e1e22;color:#888;cursor:pointer;font-size:13px;transition:all 0.15s}
+.rbtn.active{background:rgba(79,142,247,0.12);border-color:#4f8ef7;color:#4f8ef7}
+/* AMB MANAGER CARD */
+.amb-card{background:#17171a;border:1px solid #222;border-radius:12px;padding:1.25rem;margin-bottom:12px}
+.amb-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.amb-stat{background:#1e1e22;border-radius:8px;padding:.75rem;text-align:center}
+.amb-stat-val{font-size:20px;font-weight:300}
+.amb-stat-lbl{font-size:11px;color:#666;margin-top:2px}
+/* ACTIVITY */
+.act-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #1a1a1e}
+.act-item:last-child{border-bottom:none}
+.act-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}.sb-layout{grid-template-columns:1fr}}
+.sec-lbl{font-size:11px;text-transform:uppercase;letter-spacing:0.07em;color:#666;margin-bottom:10px;font-weight:500}
+.drip-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1a1a1e;font-size:13px}
+.drip-item:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="ltitle">
+      <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#555;margin-bottom:6px">21-Day Success System</div>
+      <h1>Ambassador Portal</h1>
+      <p>Sign in to manage your members</p>
+    </div>
+    <div class="card">
+      <div class="role-row">
+        <div class="rbtn active" id="rbtn-amb" onclick="setRole('ambassador')">Ambassador</div>
+        <div class="rbtn" id="rbtn-mgr" onclick="setRole('manager')">Manager</div>
+      </div>
+      <div class="field" id="field-select">
+        <label>Your name</label>
+        <select id="sel-user">
+          <option value="">Select...</option>
+          <option value="98ebf55d-b242-46bd-8fe2-48710ea6c13c">Don</option>
+          <option value="c701c1ce-0e63-4666-a54b-e27a93088b3b">Liz</option>
+          <option value="ac39e026-e7f4-48b4-acae-2694ccb85eca">Casey Rivera</option>
+          <option value="166a65ac-45dd-4df2-a416-591efc34e40b">Nick</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>PIN</label>
+        <input type="password" id="pin-input" placeholder="4-digit PIN" maxlength="4" onkeydown="if(event.key==='Enter')login()"/>
+      </div>
+      <div id="login-err" style="color:#f05252;font-size:12px;margin-bottom:8px;display:none">Incorrect credentials.</div>
+      <button class="bp" style="width:100%" onclick="login()">Sign in</button>
+      <div style="font-size:11px;color:#555;text-align:center;margin-top:12px">Contact your manager to reset your PIN</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <div id="topbar">
+    <span style="font-size:13px;font-weight:500;color:#888;margin-right:6px">SA Portal</span>
+    <div style="width:1px;height:14px;background:#333;margin-right:6px"></div>
+    <div id="nav" style="display:flex;gap:2px"></div>
+    <div class="tsp"></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:7px;height:7px;border-radius:50%;background:#3ecf8e" title="Live"></div>
+      <div style="display:flex;align-items:center;gap:7px;background:#1e1e22;border:1px solid #333;border-radius:99px;padding:3px 10px 3px 4px">
+        <div id="nav-av" style="width:24px;height:24px;border-radius:50%;background:rgba(79,142,247,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#4f8ef7"></div>
+        <span id="nav-nm" style="font-size:12px;color:#888"></span>
+      </div>
+      <button class="bs" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+  <div id="content"></div>
+</div>
+
+<!-- MODALS -->
+<div id="m-member" class="overlay hidden">
+  <div class="modal">
+    <div class="mhdr"><h3 id="m-member-title">Add member</h3><button class="mclose" onclick="cm('m-member')">✕</button></div>
+    <div class="field"><label>Full name *</label><input id="mf-name" placeholder="e.g. Sarah Johnson"/></div>
+    <div class="field"><label>Phone (for SMS)</label><input id="mf-phone" placeholder="+15551234567"/></div>
+    <div class="field"><label>Email</label><input id="mf-email" placeholder="optional"/></div>
+    <div class="field"><label>Enrollment date</label><input type="date" id="mf-date"/></div>
+    <div class="field"><label>Primary goal</label>
+      <select id="mf-goal">
+        <option>Weight loss</option><option>Muscle gain</option><option>General fitness</option>
+        <option>Athletic performance</option><option>Rehabilitation</option>
+      </select>
+    </div>
+    <div class="field"><label>Starting check-ins (if transferring)</label><input type="number" id="mf-ci" min="0" max="21" value="0"/></div>
+    <div class="mfooter">
+      <button onclick="cm('m-member')">Cancel</button>
+      <button class="bp" onclick="saveMember()">Save member</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-detail" class="overlay hidden">
+  <div class="modal modal-wide">
+    <div class="mhdr"><h3 id="m-detail-name"></h3><button class="mclose" onclick="cm('m-detail')">✕</button></div>
+    <div id="m-detail-body"></div>
+  </div>
+</div>
+
+<div id="m-sms" class="overlay hidden">
+  <div class="modal modal-wide">
+    <div class="mhdr"><h3>Send message — <span id="sms-nm" style="color:#4f8ef7"></span></h3><button class="mclose" onclick="cm('m-sms')">✕</button></div>
+    <div class="field"><label>Quick templates</label><div id="sms-tmpls"></div></div>
+    <div class="field"><label>Message</label><textarea id="sms-body" rows="5" placeholder="Type your message..."></textarea></div>
+    <div style="font-size:11px;color:#555;margin-bottom:10px">To: <span id="sms-to" style="font-family:monospace"></span></div>
+    <div id="sms-err" style="color:#f05252;font-size:12px;margin-bottom:8px;display:none"></div>
+    <div class="mfooter">
+      <button onclick="cm('m-sms')">Cancel</button>
+      <button class="bp" id="sms-btn" onclick="sendSMS()">Send SMS</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-note" class="overlay hidden">
+  <div class="modal">
+    <div class="mhdr"><h3>Add note</h3><button class="mclose" onclick="cm('m-note')">✕</button></div>
+    <div class="field"><label>Note *</label><textarea id="nf-body" rows="4" placeholder="What happened? What did you discuss?"></textarea></div>
+    <div class="field"><label>Set follow-up reminder (optional)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <input type="date" id="nf-date"/>
+        <input id="nf-label" placeholder="e.g. Call back"/>
+      </div>
+    </div>
+    <div class="mfooter">
+      <button onclick="cm('m-note')">Cancel</button>
+      <button class="bp" onclick="saveNote()">Save note</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-drip" class="overlay hidden">
+  <div class="modal">
+    <div class="mhdr"><h3>Add reminder</h3><button class="mclose" onclick="cm('m-drip')">✕</button></div>
+    <div class="field"><label>Reminder type</label>
+      <select id="df-type">
+        <option value="day3">Day 3 — encouragement check-in</option>
+        <option value="day7">Day 7 — progress check-in</option>
+        <option value="day14">Day 14 — momentum message</option>
+        <option value="day21">Day 21 — completion recognition</option>
+        <option value="absence">3-day absence outreach</option>
+        <option value="custom">Custom reminder</option>
+      </select>
+    </div>
+    <div class="field"><label>Date *</label><input type="date" id="df-date"/></div>
+    <div class="field"><label>Note (optional)</label><input id="df-note" placeholder="Any context"/></div>
+    <div class="mfooter">
+      <button onclick="cm('m-drip')">Cancel</button>
+      <button class="bp" onclick="saveDrip()">Add reminder</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-ci" class="overlay hidden">
+  <div class="modal">
+    <div class="mhdr"><h3>Log check-in — <span id="ci-nm" style="color:#4f8ef7"></span></h3><button class="mclose" onclick="cm('m-ci')">✕</button></div>
+    <div id="ci-dots" style="margin-bottom:14px"></div>
+    <div class="field"><label>Action</label>
+      <select id="ci-action">
+        <option value="1">Gym check-in (+1 pt)</option>
+        <option value="2">Completed workout (+2 pts)</option>
+        <option value="2">Attended intro class (+2 pts)</option>
+        <option value="3">PT session (+3 pts)</option>
+        <option value="3">Brought a friend (+3 pts)</option>
+        <option value="3">InBody re-scan (+3 pts)</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes (optional)</label><input id="ci-note" placeholder="Any details"/></div>
+    <div class="mfooter">
+      <button onclick="cm('m-ci')">Cancel</button>
+      <button class="bp" onclick="logCI()">Log check-in</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-cal-event" class="overlay hidden">
+  <div class="modal">
+    <div class="mhdr"><h3>Add calendar event</h3><button class="mclose" onclick="cm('m-cal-event')">✕</button></div>
+    <div class="field"><label>Member</label>
+      <select id="cal-member-sel"></select>
+    </div>
+    <div class="field"><label>Event type</label>
+      <select id="cal-type">
+        <option value="session">Education session</option>
+        <option value="day3">Day 3 check-in</option>
+        <option value="day7">Day 7 check-in</option>
+        <option value="day14">Day 14 check-in</option>
+        <option value="day21">Day 21 completion</option>
+        <option value="absence">Absence outreach</option>
+        <option value="custom">Custom reminder</option>
+      </select>
+    </div>
+    <div class="field"><label>Date *</label><input type="date" id="cal-date"/></div>
+    <div class="field"><label>Note (optional)</label><input id="cal-note" placeholder="Any details"/></div>
+    <div class="mfooter">
+      <button onclick="cm('m-cal-event')">Cancel</button>
+      <button class="bp" onclick="saveCalEvent()">Add to calendar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const SB_URL = 'https://nioqginiglznkdxnjndh.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pb3FnaW5pZ2x6bmtkeG5qbmRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2OTI3MzAsImV4cCI6MjA5NDI2ODczMH0.jWXgFyNhDNjkX-7GSVBdADKi8GilRoeVZPkRkHZbnmg';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+const ACCOUNTS = {
+  ambassadors: [
+    {id:'98ebf55d-b242-46bd-8fe2-48710ea6c13c',name:'Don',pin:'1234'},
+    {id:'c701c1ce-0e63-4666-a54b-e27a93088b3b',name:'Liz',pin:'5678'},
+    {id:'ac39e026-e7f4-48b4-acae-2694ccb85eca',name:'Casey Rivera',pin:'9012'},
+    {id:'166a65ac-45dd-4df2-a416-591efc34e40b',name:'Nick',pin:'3456'},
+  ],
+  manager: {id:'5c508b07-f6bc-402e-8118-eb3cad9130d3',name:'Gym Manager',pin:'0000'}
+};
+
+const DRIP_LABELS = {
+  day3:'Day 3 — encouragement check-in',
+  day7:'Day 7 — progress check-in',
+  day14:'Day 14 — momentum message',
+  day21:'Day 21 — completion recognition',
+  absence:'3-day absence outreach',
+  session:'Education session',
+  custom:'Custom reminder',
+  followup:'Follow-up'
+};
+
+const SMS_TEMPLATES = [
+  {label:'Day 0 — Welcome',     fn:(n,a)=>`Hey ${n}! This is ${a} from the gym — I'll be your Success Ambassador. My job is to make sure your first 21 days go smoothly. Let's get your first two sessions scheduled this week — what days work best for you?`},
+  {label:'Day 3 — Encouragement', fn:(n)=>`Hey ${n}! Just checking in on how your first few days are feeling. Getting started is the hardest part — you're doing the right thing just by showing up. Let me know if anything feels confusing!`},
+  {label:'Day 7 — Progress',    fn:(n)=>`Hey ${n}, one week in! How are you feeling on the equipment? Let me know if you want to go over anything or adjust your schedule — I'm here to help.`},
+  {label:'Day 14 — Momentum',   fn:(n)=>`You're more than halfway through the 21-Day Challenge, ${n} — that's real momentum. Keep going. The habit is building even when it doesn't feel like it!`},
+  {label:'3-Day Absence',       fn:(n,a)=>`Hey ${n} — noticed you haven't been in for a few days. No worries at all, life happens. Just want to make sure everything's okay and see if anything got in the way. I'm here — ${a}`},
+  {label:'Day 21 — Completion', fn:(n)=>`You did it, ${n}. 21 days. That's a real accomplishment — and it's just the beginning. I'd love to sit down with you this week for a progress review. When are you in next?`},
+  {label:'Custom message',      fn:()=>''},
+];
+
+// ── STATE ────────────────────────────────────────────────────
+let CU = null; // current user
+let role = 'ambassador';
+let members = [], drips = [], notes = [], activity = [];
+let calOffset = 0;
+let editMemberId = null;
+let noteMemberId = null;
+let dripMemberId = null;
+let ciMemberId = null;
+let smsMemberId = null;
+let notesMemberSel = null;
+let realtimeCh = null;
+
+// ── HELPERS ──────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const tday = () => new Date().toISOString().split('T')[0];
+const dSince = d => d ? Math.floor((Date.now()-new Date(d).getTime())/86400000) : 0;
+const inits = n => (n||'').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+function toast(msg, type=''){
+  const el=$('toast'); el.textContent=msg;
+  el.className='show'+(type?' '+type:'');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.className='',3000);
+}
+
+function cm(id){$(id).classList.add('hidden');}
+
+function mStatus(m){
+  if(m.completed) return {label:'Graduated',cls:'b-green'};
+  const d=dSince(m.enroll_date);
+  if(d>21) return {label:'Past 21',cls:'b-amber'};
+  const lc=m.last_contact?dSince(m.last_contact):d;
+  if(lc>=3) return {label:'Needs outreach',cls:'b-red'};
+  return {label:'Active',cls:'b-blue'};
+}
+
+function myMembers(){ return role==='manager' ? members : members.filter(m=>m.ambassador_id===CU.id); }
+function myDrips(){ return role==='manager' ? drips : drips.filter(d=>d.ambassador_id===CU.id); }
+function ambName(id){ return ACCOUNTS.ambassadors.find(a=>a.id===id)?.name||'—'; }
+
+// ── LOGIN ────────────────────────────────────────────────────
+function setRole(r){
+  role=r;
+  $('rbtn-amb').classList.toggle('active',r==='ambassador');
+  $('rbtn-mgr').classList.toggle('active',r==='manager');
+  $('field-select').style.display=r==='ambassador'?'block':'none';
+}
+
+function login(){
+  const pin=$('pin-input').value;
+  $('login-err').style.display='none';
+  if(role==='manager'){
+    if(pin!==ACCOUNTS.manager.pin){$('login-err').style.display='block';return;}
+    CU={...ACCOUNTS.manager,role:'manager'};
+  } else {
+    const uid=$('sel-user').value;
+    if(!uid){$('login-err').textContent='Select your name.';$('login-err').style.display='block';return;}
+    const amb=ACCOUNTS.ambassadors.find(a=>a.id===uid&&a.pin===pin);
+    if(!amb){$('login-err').textContent='Incorrect PIN.';$('login-err').style.display='block';return;}
+    CU={...amb,role:'ambassador'};
+  }
+  $('login').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('nav-av').textContent=inits(CU.name);
+  $('nav-nm').textContent=CU.name;
+  buildNav();
+  loadAll().then(()=>renderTab('dashboard'));
+  startRealtime();
+}
+
+function logout(){
+  if(realtimeCh) sb.removeChannel(realtimeCh);
+  CU=null; members=[];drips=[];notes=[];activity=[];
+  $('app').classList.add('hidden');
+  $('login').classList.remove('hidden');
+  $('pin-input').value='';
+}
+
+// ── NAV ──────────────────────────────────────────────────────
+function buildNav(){
+  const tabs = CU.role==='manager'
+    ? [{id:'dashboard',l:'Dashboard'},{id:'ambassadors',l:'Ambassadors'},{id:'members',l:'All Members'},{id:'activity',l:'Activity'}]
+    : [{id:'dashboard',l:'Dashboard'},{id:'members',l:'My Members'},{id:'calendar',l:'Calendar'},{id:'notes',l:'Notes'}];
+  $('nav').innerHTML = tabs.map(t=>`<button class="nav-tab${t.id==='dashboard'?' active':''}" data-tab="${t.id}" onclick="renderTab('${t.id}')">${t.l}</button>`).join('');
+}
+
+function setActiveTab(tab){
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+}
+
+// ── DATA ─────────────────────────────────────────────────────
+async function loadAll(){
+  const base = CU.role==='manager' ? sb : sb;
+  const mq = CU.role==='manager' ? sb.from('members').select('*').order('created_at',{ascending:false})
+    : sb.from('members').select('*').eq('ambassador_id',CU.id).order('created_at',{ascending:false});
+  const dq = CU.role==='manager' ? sb.from('drips').select('*').order('due_date')
+    : sb.from('drips').select('*').eq('ambassador_id',CU.id).order('due_date');
+  const nq = CU.role==='manager' ? sb.from('notes').select('*').order('created_at',{ascending:false})
+    : sb.from('notes').select('*').eq('ambassador_id',CU.id).order('created_at',{ascending:false});
+  const aq = CU.role==='manager' ? sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(80)
+    : sb.from('activity_log').select('*').eq('ambassador_id',CU.id).order('created_at',{ascending:false}).limit(40);
+  const [mr,dr,nr,ar] = await Promise.all([mq,dq,nq,aq]);
+  members = mr.data||[]; drips = dr.data||[]; notes = nr.data||[]; activity = ar.data||[];
+}
+
+function startRealtime(){
+  realtimeCh = sb.channel('realtime-all')
+    .on('postgres_changes',{event:'*',schema:'public',table:'members'},async()=>{await loadAll();renderCurrentTab();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'drips'},async()=>{await loadAll();renderCurrentTab();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'notes'},async()=>{await loadAll();renderCurrentTab();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'activity_log'},async()=>{await loadAll();renderCurrentTab();})
+    .subscribe();
+}
+
+function renderCurrentTab(){
+  const active=document.querySelector('.nav-tab.active');
+  if(active) renderTab(active.dataset.tab);
+}
+
+// ── RENDER TABS ──────────────────────────────────────────────
+function renderTab(tab){
+  setActiveTab(tab);
+  const c=$('content');
+  if(tab==='dashboard') c.innerHTML=renderDashboard();
+  else if(tab==='members') c.innerHTML=renderMembers();
+  else if(tab==='calendar') c.innerHTML=renderCalendar();
+  else if(tab==='notes'){ c.innerHTML=renderNotes(); }
+  else if(tab==='ambassadors') c.innerHTML=renderAmbassadors();
+  else if(tab==='activity') c.innerHTML=renderActivity();
+}
+
+// DASHBOARD
+function renderDashboard(){
+  const mm=myMembers();
+  const urgent=mm.filter(m=>!m.completed&&(m.last_contact?dSince(m.last_contact):dSince(m.enroll_date))>=3);
+  const todayD=myDrips().filter(d=>d.due_date===tday()&&!d.done);
+  const completed=mm.filter(m=>m.completed);
+  const upcoming=myDrips().filter(d=>!d.done&&d.due_date>=tday()).sort((a,b)=>a.due_date.localeCompare(b.due_date)).slice(0,5);
+
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning':'Good afternoon,';
+
+  const urgentHTML = urgent.length ? urgent.map(m=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1e">
+      <div>
+        <div style="font-weight:500">${m.name}</div>
+        <div style="font-size:11px;color:#555">Day ${dSince(m.enroll_date)} · ${m.last_contact?dSince(m.last_contact)+' days since contact':'No contact yet'}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        ${m.phone?`<button class="bs bg" onclick="openSMS('${m.id}')">📱 Text</button>`:''}
+        <button class="bs" onclick="openCI('${m.id}')">Log outreach</button>
+      </div>
+    </div>`).join('') : '<div style="color:#555;font-size:13px">All members contacted recently ✓</div>';
+
+  const todayHTML = todayD.length ? todayD.map(d=>{
+    const m=members.find(x=>x.id===d.member_id);
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1e">
+      <div><div style="font-weight:500">${m?m.name:'Unknown'}</div><div style="font-size:11px;color:#555">${d.label}</div></div>
+      <div style="display:flex;gap:6px">
+        ${m?.phone?`<button class="bs bg" onclick="openSMS('${m.id}')">📱</button>`:''}
+        <button class="bs" onclick="markDripDone('${d.id}')">Done ✓</button>
+      </div>
+    </div>`;}).join('') : '<div style="color:#555;font-size:13px">Nothing due today</div>';
+
+  const upcomingHTML = upcoming.length ? upcoming.map(d=>{
+    const m=members.find(x=>x.id===d.member_id);
+    return`<div class="drip-item">
+      <div style="width:6px;height:6px;border-radius:50%;background:#f5a623;flex-shrink:0"></div>
+      <div style="flex:1"><strong>${m?m.name:'?'}</strong> — ${d.label}</div>
+      <div style="font-size:11px;color:#555;font-family:monospace">${d.due_date}</div>
+      <button class="bs" onclick="markDripDone('${d.id}')">Done</button>
+    </div>`;}).join('') : '<div style="color:#555;font-size:13px">No upcoming reminders</div>';
+
+  return`
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">${greet} ${CU.name.split(' ')[0]} 👋</div>
+      <div style="font-size:13px;color:#666;margin-top:2px">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
+    </div>
+    ${CU.role==='ambassador'?`<button class="bp" onclick="openAddMember()">+ Add member</button>`:''}
+  </div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-val">${mm.length}</div><div class="metric-lbl">Active members</div></div>
+    <div class="metric"><div class="metric-val" style="color:#f05252">${urgent.length}</div><div class="metric-lbl">Need outreach</div></div>
+    <div class="metric"><div class="metric-val" style="color:#f5a623">${todayD.length}</div><div class="metric-lbl">Due today</div></div>
+    <div class="metric"><div class="metric-val" style="color:#3ecf8e">${completed.length}</div><div class="metric-lbl">Graduated</div></div>
+  </div>
+  <div class="two-col" style="margin-bottom:14px">
+    <div class="card"><div class="sec-lbl" style="color:#f05252">⚠ Needs outreach</div>${urgentHTML}</div>
+    <div class="card"><div class="sec-lbl" style="color:#4f8ef7">Today's reminders</div>${todayHTML}</div>
+  </div>
+  <div class="card"><div class="sec-lbl" style="color:#f5a623">Upcoming reminders</div>${upcomingHTML}</div>`;
+}
+
+// MEMBERS
+function renderMembers(){
+  const mm=myMembers();
+  const rows = mm.length ? mm.map(m=>{
+    const ci=m.check_ins||0;
+    const prog=Math.min(100,Math.round(ci/21*100));
+    const st=mStatus(m);
+    return`<tr>
+      <td><div style="font-weight:500">${m.name}</div><div style="font-size:11px;color:#555">${m.phone||m.email||'—'}</div></td>
+      ${CU.role==='manager'?`<td style="font-size:12px;color:#888">${ambName(m.ambassador_id)}</td>`:''}
+      <td style="font-family:monospace;font-size:12px">${dSince(m.enroll_date)}/21</td>
+      <td><div style="display:flex;align-items:center;gap:7px"><div class="pbar"><div class="pfill" style="width:${prog}%"></div></div><span style="font-size:12px;font-family:monospace">${ci}</span></div></td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+      <td style="font-size:12px;color:#555">${m.last_contact||'Never'}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="bs" onclick="openDetail('${m.id}')" title="View">👁</button>
+          ${m.phone?`<button class="bs bg" onclick="openSMS('${m.id}')" title="Text">📱</button>`:''}
+          <button class="bs" onclick="openCI('${m.id}')" title="Check-in">✓</button>
+          <button class="bs" onclick="openDrip('${m.id}')" title="Reminder">🔔</button>
+          <button class="bs" onclick="openNote('${m.id}')" title="Note">📝</button>
+        </div>
+      </td>
+    </tr>`;}).join('')
+    : `<tr><td colspan="7" style="text-align:center;color:#555;padding:32px">No members yet — add your first member above</td></tr>`;
+
+  return`
+  <div class="page-hdr">
+    <div class="page-title">${CU.role==='manager'?'All members':'My members'} <span style="font-size:14px;color:#555;font-weight:400">(${myMembers().length})</span></div>
+    ${CU.role==='ambassador'?`<button class="bp" onclick="openAddMember()">+ Add member</button>`:''}
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Member</th>${CU.role==='manager'?'<th>Ambassador</th>':''}
+        <th>Day</th><th>Check-ins</th><th>Status</th><th>Last contact</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+// CALENDAR
+function renderCalendar(){
+  const now=new Date();
+  const d=new Date(now.getFullYear(),now.getMonth()+calOffset,1);
+  const year=d.getFullYear(), month=d.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const t=tday();
+  const md=myDrips().filter(x=>!x.done);
+
+  const dayHdrs=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-hdr">${d}</div>`).join('');
+  let cells='';
+  for(let i=0;i<firstDay;i++) cells+=`<div class="cal-day empty"></div>`;
+  for(let day=1;day<=daysInMonth;day++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday=ds===t;
+    const evts=md.filter(x=>x.due_date===ds);
+    let evHTML=evts.map(e=>{
+      const m=members.find(x=>x.id===e.member_id);
+      const cls=e.type==='session'?'ce-amber':e.type==='followup'||e.type==='custom'?'ce-blue':'ce-green';
+      return`<div class="cal-evt ${cls}" title="${e.label}">${m?m.name.split(' ')[0]:'?'}: ${(e.label||'').split('—')[0].trim()}</div>`;
+    }).join('');
+    cells+=`<div class="cal-day${isToday?' today':''}"><div class="cal-num">${day}</div>${evHTML}</div>`;
+  }
+
+  return`
+  <div class="page-hdr">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onclick="calNav(-1)">‹</button>
+      <span class="page-title">${d.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</span>
+      <button onclick="calNav(1)">›</button>
+      <button onclick="calNav(0)" style="font-size:12px">Today</button>
+    </div>
+    <button class="bp" onclick="openCalEvent()">+ Add event</button>
+  </div>
+  <div class="cal-grid" style="margin-bottom:4px">${dayHdrs}</div>
+  <div class="cal-grid">${cells}</div>
+  <div style="display:flex;gap:14px;margin-top:12px;flex-wrap:wrap">
+    <span style="font-size:11px;color:#888"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:rgba(62,207,142,0.2);margin-right:4px"></span>Drip reminder</span>
+    <span style="font-size:11px;color:#888"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:rgba(79,142,247,0.2);margin-right:4px"></span>Follow-up</span>
+    <span style="font-size:11px;color:#888"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:rgba(245,166,35,0.2);margin-right:4px"></span>Session</span>
+  </div>`;
+}
+
+function calNav(dir){ calOffset = dir===0?0:calOffset+dir; renderTab('calendar'); }
+
+// NOTES
+function renderNotes(){
+  const mm=myMembers();
+  const sidebar=mm.map(m=>`
+    <div class="sb-item${notesMemberSel===m.id?' active':''}" onclick="selectNotesMember('${m.id}')">
+      <div class="sba">${inits(m.name)}</div>
+      <div><div>${m.name}</div><div style="font-size:11px;color:#555">Day ${dSince(m.enroll_date)}</div></div>
+    </div>`).join('') || '<div style="color:#555;font-size:13px">No members yet</div>';
+
+  let panel='<div style="color:#555;font-size:13px;padding-top:48px;text-align:center">Select a member to view notes</div>';
+  if(notesMemberSel){
+    const m=members.find(x=>x.id===notesMemberSel);
+    const mn=notes.filter(n=>n.member_id===notesMemberSel).sort((a,b)=>b.created_at.localeCompare(a.created_at));
+    panel=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div><div style="font-size:15px;font-weight:500">${m?.name||'Member'}</div>${CU.role==='manager'?`<div style="font-size:11px;color:#555">Ambassador: ${ambName(m?.ambassador_id)}</div>`:''}</div>
+        <div style="display:flex;gap:6px">
+          ${m?.phone?`<button class="bs bg" onclick="openSMS('${m.id}')">📱 Text</button>`:''}
+          <button class="bp bs" onclick="openNote('${notesMemberSel}')">+ Add note</button>
+        </div>
+      </div>
+      ${mn.map(n=>`<div class="note">
+        <div class="note-meta"><span>${new Date(n.created_at).toLocaleDateString()}</span><span>${n.author_name||''}</span></div>
+        <div style="font-size:13px">${n.body}</div>
+        ${n.followup_date?`<div style="font-size:11px;color:#4f8ef7;margin-top:4px">🔔 Follow-up: ${n.followup_date}${n.followup_label?' — '+n.followup_label:''}</div>`:''}
+      </div>`).join('')||'<div style="color:#555;font-size:13px">No notes yet. Log your first interaction.</div>'}`;
+  }
+
+  return`
+  <div class="page-hdr"><div class="page-title">Notes</div></div>
+  <div class="sb-layout">
+    <div class="card" style="padding:.75rem">${sidebar}</div>
+    <div class="card">${panel}</div>
+  </div>`;
+}
+
+function selectNotesMember(id){ notesMemberSel=id; renderTab('notes'); }
+
+// AMBASSADORS (manager only)
+function renderAmbassadors(){
+  return`
+  <div class="page-hdr"><div class="page-title">Ambassador overview</div></div>
+  ${ACCOUNTS.ambassadors.map(a=>{
+    const mm=members.filter(m=>m.ambassador_id===a.id);
+    const urgent=mm.filter(m=>!m.completed&&(m.last_contact?dSince(m.last_contact):dSince(m.enroll_date))>=3);
+    const completed=mm.filter(m=>m.completed);
+    const ciRate=mm.length?Math.round(mm.filter(m=>(m.check_ins||0)>=12).length/mm.length*100):0;
+    const todayDrips=drips.filter(d=>d.ambassador_id===a.id&&d.due_date===tday()&&!d.done);
+    return`<div class="amb-card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="sba" style="width:36px;height:36px;font-size:13px">${inits(a.name)}</div>
+          <div><div style="font-weight:500;font-size:15px">${a.name}</div><div style="font-size:11px;color:#555">${mm.length} members</div></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${urgent.length?`<span class="badge b-red">${urgent.length} need outreach</span>`:`<span class="badge b-green">All contacted ✓</span>`}
+          ${todayDrips.length?`<span class="badge b-amber">${todayDrips.length} due today</span>`:''}
+        </div>
+      </div>
+      <div class="amb-stats">
+        <div class="amb-stat"><div class="amb-stat-val">${mm.length}</div><div class="amb-stat-lbl">Members</div></div>
+        <div class="amb-stat"><div class="amb-stat-val" style="color:#f05252">${urgent.length}</div><div class="amb-stat-lbl">Need outreach</div></div>
+        <div class="amb-stat"><div class="amb-stat-val" style="color:#3ecf8e">${completed.length}</div><div class="amb-stat-lbl">Graduated</div></div>
+        <div class="amb-stat"><div class="amb-stat-val" style="color:#4f8ef7">${ciRate}%</div><div class="amb-stat-lbl">12+ check-in rate</div></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="sec-lbl">Members</div>
+        ${mm.slice(0,4).map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1a1e">
+          <span>${m.name}</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="badge ${mStatus(m).cls}">${mStatus(m).label}</span>
+            ${m.phone?`<button class="bs bg" onclick="openSMS('${m.id}')">📱</button>`:''}
+          </div>
+        </div>`).join('')||'<div style="color:#555;font-size:13px">No members yet</div>'}
+      </div>
+    </div>`;
+  }).join('')}`;
+}
+
+// ACTIVITY (manager only)
+function renderActivity(){
+  return`
+  <div class="page-hdr"><div class="page-title">Activity feed</div></div>
+  <div class="card">
+    ${activity.length ? activity.map(a=>{
+      const dotColor=a.type==='sms'?'#3ecf8e':a.type==='checkin'?'#f5a623':a.type==='note'?'#4f8ef7':'#888';
+      const icon=a.type==='sms'?'📱':a.type==='checkin'?'✓':a.type==='note'?'📝':a.type==='graduated'?'🎓':'🔔';
+      const m=members.find(x=>x.id===a.member_id);
+      return`<div class="act-item">
+        <div class="act-dot" style="background:${dotColor}"></div>
+        <div>
+          <div style="font-size:13px">${icon} <strong>${ambName(a.ambassador_id)}</strong> — ${a.description}</div>
+          ${m?`<div style="font-size:11px;color:#555">Member: ${m.name}</div>`:''}
+          <div style="font-size:11px;color:#444;font-family:monospace">${new Date(a.created_at).toLocaleString()}</div>
+        </div>
+      </div>`;}).join('')
+    : '<div style="color:#555;font-size:13px">No activity yet</div>'}
+  </div>`;
+}
+
+// ── MEMBER ACTIONS ───────────────────────────────────────────
+function openAddMember(){
+  editMemberId=null;
+  $('m-member-title').textContent='Add member';
+  ['mf-name','mf-phone','mf-email'].forEach(id=>$(id).value='');
+  $('mf-date').value=tday();
+  $('mf-ci').value='0';
+  $('m-member').classList.remove('hidden');
+}
+
+async function saveMember(){
+  const name=$('mf-name').value.trim();
+  if(!name){toast('Name is required','err');return;}
+  const data={
+    name, phone:$('mf-phone').value.trim()||null,
+    email:$('mf-email').value.trim()||null,
+    enroll_date:$('mf-date').value||tday(),
+    goal:$('mf-goal').value,
+    check_ins:parseInt($('mf-ci').value)||0,
+    ambassador_id:CU.id,
+    last_contact:null, completed:false
+  };
+  if(editMemberId){
+    const {error}=await sb.from('members').update(data).eq('id',editMemberId);
+    if(error){toast('Error saving: '+error.message,'err');return;}
+    toast('Member updated ✓','ok');
+  } else {
+    const {data:ins,error}=await sb.from('members').insert(data).select().single();
+    if(error){toast('Error saving: '+error.message,'err');return;}
+    if(ins) await autoSetDrips(ins.id, data.enroll_date);
+    await sb.from('activity_log').insert({ambassador_id:CU.id,member_id:ins?.id,type:'member_added',description:`Added new member: ${name}`});
+    toast('Member added ✓','ok');
+  }
+  cm('m-member');
+  await loadAll(); renderTab('members');
+}
+
+async function autoSetDrips(memberId, enrollDate){
+  const enroll=new Date(enrollDate);
+  const items=[{days:1,type:'session',label:'Day 1 education session'},{days:3,type:'day3'},{days:7,type:'day7'},{days:14,type:'day14'},{days:21,type:'day21'}];
+  const rows=items.map(d=>{
+    const dt=new Date(enroll); dt.setDate(dt.getDate()+d.days);
+    return{member_id:memberId,ambassador_id:CU.id,due_date:dt.toISOString().split('T')[0],label:d.label||DRIP_LABELS[d.type],type:d.type,done:false};
+  });
+  await sb.from('drips').insert(rows);
+}
+
+function openDetail(id){
+  const m=members.find(x=>x.id===id); if(!m) return;
+  const ci=m.check_ins||0, days=dSince(m.enroll_date);
+  const prog=Math.min(100,Math.round(ci/21*100));
+  const mn=notes.filter(n=>n.member_id===id).sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,3);
+  const md=drips.filter(d=>d.member_id===id&&!d.done).sort((a,b)=>a.due_date.localeCompare(b.due_date));
+  const st=mStatus(m);
+  let dots=''; for(let i=1;i<=21;i++) dots+=`<div class="dot${i<=ci?' done':i===ci+1?' next':''}"></div>`;
+
+  $('m-detail-name').textContent=m.name;
+  $('m-detail-body').innerHTML=`
+    <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+      <span class="badge ${st.cls}">${st.label}</span>
+      <span class="badge b-gray">Day ${days}</span>
+      <span class="badge b-gray">${m.goal||'—'}</span>
+    </div>
+    <div class="two-col" style="margin-bottom:14px">
+      <div style="background:#1e1e22;border-radius:8px;padding:.75rem"><div style="font-size:22px;font-weight:300">${days}</div><div style="font-size:11px;color:#555">Day of program</div></div>
+      <div style="background:#1e1e22;border-radius:8px;padding:.75rem"><div style="font-size:22px;font-weight:300">${ci}</div><div style="font-size:11px;color:#555">Check-ins logged</div></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="sec-lbl">21-day progress</div>
+      <div class="dots" style="margin-bottom:8px">${dots}</div>
+      <div class="pbar" style="width:100%;height:6px"><div class="pfill" style="width:${prog}%"></div></div>
+      <div style="font-size:11px;color:#555;margin-top:4px">${ci} of 21 check-ins · ${prog}% complete</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="sec-lbl">Upcoming reminders</div>
+      ${md.slice(0,3).map(d=>`<div class="drip-item"><span style="color:#f5a623">🔔</span><span>${d.label}</span><span style="margin-left:auto;font-size:11px;font-family:monospace;color:#555">${d.due_date}</span></div>`).join('')||'<div style="color:#555;font-size:13px">None set</div>'}
+    </div>
+    <div style="margin-bottom:16px">
+      <div class="sec-lbl">Recent notes</div>
+      ${mn.map(n=>`<div class="note"><div class="note-meta"><span>${new Date(n.created_at).toLocaleDateString()}</span></div><div style="font-size:13px">${n.body}</div></div>`).join('')||'<div style="color:#555;font-size:13px">No notes yet</div>'}
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${m.phone?`<button class="bg" onclick="openSMS('${m.id}');cm('m-detail')">📱 Text</button>`:''}
+      <button onclick="openCI('${m.id}');cm('m-detail')">✓ Check-in</button>
+      <button onclick="openNote('${m.id}');cm('m-detail')">📝 Note</button>
+      <button onclick="openDrip('${m.id}');cm('m-detail')">🔔 Reminder</button>
+      ${!m.completed?`<button onclick="graduate('${m.id}');cm('m-detail')">🎓 Graduate</button>`:''}
+      <button class="br bs" onclick="if(confirm('Delete this member?')){deleteMember('${m.id}');cm('m-detail')}">Delete</button>
+    </div>`;
+  $('m-detail').classList.remove('hidden');
+}
+
+async function graduate(id){
+  const m=members.find(x=>x.id===id);
+  await sb.from('members').update({completed:true}).eq('id',id);
+  await sb.from('activity_log').insert({ambassador_id:CU.id,member_id:id,type:'graduated',description:`${m?.name||'Member'} graduated 🎓`});
+  toast('Member graduated! 🎓','ok');
+  await loadAll(); renderCurrentTab();
+}
+
+async function deleteMember(id){
+  await sb.from('notes').delete().eq('member_id',id);
+  await sb.from('drips').delete().eq('member_id',id);
+  await sb.from('members').delete().eq('id',id);
+  toast('Member removed','ok');
+  await loadAll(); renderTab('members');
+}
+
+// ── CHECK-IN ─────────────────────────────────────────────────
+function openCI(id){
+  const m=members.find(x=>x.id===id); if(!m) return;
+  ciMemberId=id;
+  $('ci-nm').textContent=m.name;
+  $('ci-note').value='';
+  const ci=m.check_ins||0;
+  let dots=''; for(let i=1;i<=21;i++) dots+=`<div class="dot${i<=ci?' done':i===ci+1?' next':''}"></div>`;
+  $('ci-dots').innerHTML=`<div style="font-size:12px;color:#555;margin-bottom:8px">${ci} of 21 check-ins logged</div><div class="dots">${dots}</div>`;
+  $('m-ci').classList.remove('hidden');
+}
+
+async function logCI(){
+  const m=members.find(x=>x.id===ciMemberId); if(!m) return;
+  const newCI=Math.min(21,(m.check_ins||0)+1);
+  const grad=newCI>=21;
+  const {error}=await sb.from('members').update({check_ins:newCI,last_contact:tday(),completed:grad}).eq('id',ciMemberId);
+  if(error){toast('Error: '+error.message,'err');return;}
+  const note=$('ci-note').value.trim();
+  if(note) await sb.from('notes').insert({member_id:ciMemberId,ambassador_id:CU.id,body:'[Check-in] '+note,author_name:CU.name});
+  await sb.from('activity_log').insert({ambassador_id:CU.id,member_id:ciMemberId,type:'checkin',description:`Check-in logged for ${m.name} (${newCI}/21)${grad?' — GRADUATED 🎓':''}`});
+  toast(grad?`${m.name} graduated! 🎓`:'Check-in logged ✓','ok');
+  cm('m-ci'); await loadAll(); renderCurrentTab();
+}
+
+// ── NOTES ────────────────────────────────────────────────────
+function openNote(id){
+  noteMemberId=id;
+  $('nf-body').value=''; $('nf-date').value=''; $('nf-label').value='';
+  $('m-note').classList.remove('hidden');
+}
+
+async function saveNote(){
+  const body=$('nf-body').value.trim();
+  if(!body){toast('Note cannot be empty','err');return;}
+  const fd=$('nf-date').value, fl=$('nf-label').value.trim();
+  const {error}=await sb.from('notes').insert({member_id:noteMemberId,ambassador_id:CU.id,body,author_name:CU.name,followup_date:fd||null,followup_label:fl||null});
+  if(error){toast('Error: '+error.message,'err');return;}
+  await sb.from('members').update({last_contact:tday()}).eq('id',noteMemberId);
+  if(fd) await sb.from('drips').insert({member_id:noteMemberId,ambassador_id:CU.id,due_date:fd,label:fl||'Follow-up',type:'followup',done:false});
+  await sb.from('activity_log').insert({ambassador_id:CU.id,member_id:noteMemberId,type:'note',description:`Note added`});
+  toast('Note saved ✓','ok');
+  cm('m-note'); await loadAll(); renderCurrentTab();
+}
+
+// ── DRIPS ────────────────────────────────────────────────────
+function openDrip(id){
+  dripMemberId=id; $('df-date').value=tday(); $('df-note').value='';
+  $('m-drip').classList.remove('hidden');
+}
+
+async function saveDrip(){
+  const dt=$('df-date').value;
+  if(!dt){toast('Date required','err');return;}
+  const type=$('df-type').value, note=$('df-note').value.trim();
+  const {error}=await sb.from('drips').insert({member_id:dripMemberId,ambassador_id:CU.id,due_date:dt,label:DRIP_LABELS[type]+(note?' — '+note:''),type,done:false});
+  if(error){toast('Error: '+error.message,'err');return;}
+  toast('Reminder added ✓','ok');
+  cm('m-drip'); await loadAll(); renderCurrentTab();
+}
+
+async function markDripDone(id){
+  await sb.from('drips').update({done:true}).eq('id',id);
+  toast('Marked done ✓','ok');
+  await loadAll(); renderCurrentTab();
+}
+
+// ── CALENDAR EVENT ───────────────────────────────────────────
+function openCalEvent(){
+  const mm=myMembers();
+  const sel=$('cal-member-sel');
+  sel.innerHTML=mm.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  $('cal-date').value=tday(); $('cal-note').value='';
+  $('m-cal-event').classList.remove('hidden');
+}
+
+async function saveCalEvent(){
+  const dt=$('cal-date').value;
+  if(!dt){toast('Date required','err');return;}
+  const memberId=$('cal-member-sel').value;
+  if(!memberId){toast('Select a member','err');return;}
+  const type=$('cal-type').value, note=$('cal-note').value.trim();
+  const {error}=await sb.from('drips').insert({member_id:memberId,ambassador_id:CU.id,due_date:dt,label:DRIP_LABELS[type]+(note?' — '+note:''),type,done:false});
+  if(error){toast('Error: '+error.message,'err');return;}
+  toast('Event added ✓','ok');
+  cm('m-cal-event'); await loadAll(); renderTab('calendar');
+}
+
+// ── SMS ──────────────────────────────────────────────────────
+function openSMS(id){
+  const m=members.find(x=>x.id===id); if(!m) return;
+  smsMemberId=id;
+  $('sms-nm').textContent=m.name;
+  $('sms-to').textContent=m.phone||'No phone number on file';
+  $('sms-body').value=''; $('sms-err').style.display='none';
+  $('sms-tmpls').innerHTML=SMS_TEMPLATES.map((t,i)=>`
+    <div class="sms-tmpl" onclick="pickTemplate(${i},'${id}')">
+      <div style="font-size:12px;font-weight:500">${t.label}</div>
+      <div class="sms-prev">${t.fn(m.name,CU.name).slice(0,90)}${t.fn(m.name,CU.name).length>90?'…':''}</div>
+    </div>`).join('');
+  $('m-sms').classList.remove('hidden');
+}
+
+function pickTemplate(i,id){
+  const m=members.find(x=>x.id===id); if(!m) return;
+  document.querySelectorAll('.sms-tmpl').forEach((el,idx)=>el.classList.toggle('sel',idx===i));
+  $('sms-body').value=SMS_TEMPLATES[i].fn(m.name,CU.name);
+}
+
+async function sendSMS(){
+  const m=members.find(x=>x.id===smsMemberId);
+  if(!m?.phone){toast('No phone number on file for this member','err');return;}
+  const body=$('sms-body').value.trim();
+  if(!body){toast('Message cannot be empty','err');return;}
+  const btn=$('sms-btn'); btn.disabled=true; btn.textContent='Sending...';
+  $('sms-err').style.display='none';
+  try{
+    const res=await sb.functions.invoke('send-sms',{body:{to:m.phone,message:body}});
+    if(res.error) throw new Error(res.error.message||'Edge function error');
+    await sb.from('members').update({last_contact:tday()}).eq('id',smsMemberId);
+    await sb.from('notes').insert({member_id:smsMemberId,ambassador_id:CU.id,body:`[SMS sent] ${body}`,author_name:CU.name});
+    await sb.from('activity_log').insert({ambassador_id:CU.id,member_id:smsMemberId,type:'sms',description:`SMS sent to ${m.name}`});
+    toast('Message sent ✓','ok');
+    cm('m-sms'); await loadAll(); renderCurrentTab();
+  }catch(e){
+    $('sms-err').textContent='Failed: '+e.message; $('sms-err').style.display='block';
+    toast('SMS failed','err');
+  }
+  btn.disabled=false; btn.textContent='Send SMS';
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+// Close modals on overlay click
+document.querySelectorAll('.overlay').forEach(el=>{
+  el.addEventListener('click',e=>{ if(e.target===el) el.classList.add('hidden'); });
+});
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(r => {
+      console.log('SW registered');
+    }).catch(e => console.log('SW failed:', e));
+  });
+}
+</script>
+</body>
+</html>
